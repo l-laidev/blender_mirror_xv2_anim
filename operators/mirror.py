@@ -1,4 +1,5 @@
 import bpy
+from ..utils import invert_frame, copy_to_other, insert_frame, delete_frame
 
 class MirrorAnim(bpy.types.Operator):
     """Mirror the selected XV2 animation"""
@@ -34,99 +35,49 @@ class MirrorAnim(bpy.types.Operator):
             
             bone2keyframes[bone_name] = list(map(lambda x: int(x.co[0]), fc.keyframe_points))
         
-        seen = set()
-        # swap L/R bones' animation
-        for bone_name in filter(lambda x: x.split('_')[1] in ['L', 'R'], bone2keyframes):
-            if bone_name in seen:
+        all_frames = set()
+        for frames in bone2keyframes.values():
+            all_frames |= set(frames)
+        
+        LR_pairs = {}
+        other_bones = set()
+        for bone in armature.pose.bones:
+            bone_name_parts = bone.name.split('_')
+            
+            if bone_name_parts[1] not in ['L', 'R']:
+                other_bones.add(bone)
                 continue
             
-            bone_name_parts = bone_name.split('_')
-            assert bone_name_parts[1] in ['L', 'R'], f'Found invalid bone during L/R swapping: {bone_name}'
-            
-            bone_name_parts[1] = 'L' if bone_name_parts[1] == 'R' else 'R'
-            other_pair_name = '_'.join(bone_name_parts)
-            
-            seen |= {bone_name, other_pair_name}
-            bone1, bone2 = armature.pose.bones[bone_name], armature.pose.bones[other_pair_name]
-            
-            bone1_frames = bone2keyframes.get(bone_name, [])
-            bone2_frames = bone2keyframes.get(other_pair_name, [])
-            
-            bone1_kf2locrot = {}
-            for kf in bone1_frames:
-                context.scene.frame_set(kf)
-                assert bone1.rotation_mode == "QUATERNION", f"XV2 rotations must be in Quaternion. Got: {bone1.rotation_mode}"
-                
-                bone1_kf2locrot[kf] = (bone1.location.copy(), bone1.rotation_quaternion.copy())
-                bone1.keyframe_delete(data_path="location", frame=kf)
-                bone1.keyframe_delete(data_path="rotation_quaternion", frame=kf)
-                bone1.keyframe_delete(data_path="rotation_euler", frame=kf)
-            
-            bone2_kf2locrot = {}
-            for kf in bone2_frames:
-                context.scene.frame_set(kf)
-                assert bone2.rotation_mode == "QUATERNION", f"XV2 rotations must be in Quaternion. Got: {bone2.rotation_mode}"
-                
-                bone2_kf2locrot[kf] = (bone2.location.copy(), bone2.rotation_quaternion.copy())
-                bone2.keyframe_delete(data_path="location", frame=kf)
-                bone2.keyframe_delete(data_path="rotation_quaternion", frame=kf)
-                bone2.keyframe_delete(data_path="rotation_euler", frame=kf)
-            
-            for kf in bone1_kf2locrot:
-                context.scene.frame_set(kf)
-                
-                loc, rot = bone1_kf2locrot[kf]
-                for pos in 'xyz':
-                    exec(f"bone2.location.{pos} = loc.{pos}")
-                
-                for compo in 'wxyz':
-                    exec(f"bone2.rotation_quaternion.{compo} = rot.{compo}")
-                
-                bone2.keyframe_insert(data_path="location", frame=kf)
-                bone2.keyframe_insert(data_path="rotation_quaternion", frame=kf)
-                bone2.keyframe_insert(data_path="rotation_euler", frame=kf)
-            
-            for kf in bone2_kf2locrot:
-                context.scene.frame_set(kf)
-                
-                loc, rot = bone2_kf2locrot[kf]
-                for pos in 'xyz':
-                    exec(f"bone1.location.{pos} = loc.{pos}")
-                
-                for compo in 'wxyz':
-                    exec(f"bone1.rotation_quaternion.{compo} = rot.{compo}")
-                
-                bone1.keyframe_insert(data_path="location", frame=kf)
-                bone1.keyframe_insert(data_path="rotation_quaternion", frame=kf)
-                bone1.keyframe_insert(data_path="rotation_euler", frame=kf)
-            
+            name_without_LR = '_'.join(bone_name_parts[:1] + bone_name_parts[2:])
+            LR_pairs[name_without_LR] = LR_pairs.get(name_without_LR, []) + [bone]
         
-        # invert location and rotation
-        for bone_name in bone2keyframes:
-            bone = armature.pose.bones[bone_name]
+        for frame in all_frames:
+            context.scene.frame_set(frame)
             
-            for kf in bone2keyframes[bone_name]:
-                context.scene.frame_set(kf)
+            for bone in other_bones:
+                if frame in bone2keyframes.get(bone.name, []):
+                    invert_frame(bone, frame)
+                    insert_frame(bone, frame)
+            
+            for pair in LR_pairs:
+                boneA, boneB = LR_pairs[pair]
                 
-                # 0 doesn't need to be changed
-                if all([val == 0 for val in [
-                    bone.rotation_quaternion.x,
-                    bone.rotation_quaternion.y,
-                    bone.rotation_quaternion.z,
-                    bone.location.x,
-                ]]):
-                    continue
+                boneA_loc, boneA_rot, boneA_scale = boneA.location.copy(), boneA.rotation_quaternion.copy(), boneA.scale.copy()
+                boneB_loc, boneB_rot, boneB_scale = boneB.location.copy(), boneB.rotation_quaternion.copy(), boneB.scale.copy()
                 
-                assert bone.rotation_mode == "QUATERNION", f"XV2 rotations must be in Quaternion. Got: {bone.rotation_mode}"
+                delete_frame(boneA, frame)
+                delete_frame(boneB, frame)
                 
-                bone.location.x *= -1.0
-                bone.rotation_quaternion.y *= -1.0
-                bone.rotation_quaternion.z *= -1.0
+                if frame in bone2keyframes.get(boneA.name, []):
+                    copy_to_other(boneB, boneA_loc, boneA_rot, boneA_scale)
+                    invert_frame(boneB, frame)
+                    insert_frame(boneB, frame)
                 
-                bone.keyframe_insert(data_path="location", frame=kf)
-                bone.keyframe_insert(data_path="rotation_quaternion", frame=kf)
-                bone.keyframe_insert(data_path="rotation_euler", frame=kf)
-        
+                if frame in bone2keyframes.get(boneB.name, []):
+                    copy_to_other(boneA, boneB_loc, boneB_rot, boneB_scale)
+                    invert_frame(boneA, frame)
+                    insert_frame(boneA, frame)
+            
         
         context.scene.frame_set(old_frame)
         bpy.ops.object.mode_set(mode=old_mode)
