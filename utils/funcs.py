@@ -1,5 +1,6 @@
 class Utilities:
     mirror_options = {}
+    mirror_mode = {}
     
     @staticmethod
     def invert_frame(bone):
@@ -12,12 +13,21 @@ class Utilities:
             return
         
         if "Location" in Utilities.mirror_options:
-            bone.location.x *= -1.0
+            match Utilities.mirror_mode:
+                case "XV2":        
+                    bone.location.x *= -1.0
+                case "SZ":
+                    bone.location.z *= -1.0
         
         if "Rotation" in Utilities.mirror_options:
             assert bone.rotation_mode == "QUATERNION", f"XV2 rotations must be in Quaternion. Got: {bone.rotation_mode}"
             bone.rotation_quaternion.y *= -1.0
-            bone.rotation_quaternion.z *= -1.0
+            
+            match Utilities.mirror_mode:
+                case "XV2":
+                    bone.rotation_quaternion.z *= -1.0
+                case "SZ":
+                    bone.rotation_quaternion.x *= -1.0
 
     @staticmethod
     def copy_to_other(other, loc, rot, scale):
