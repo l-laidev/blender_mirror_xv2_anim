@@ -99,26 +99,6 @@ class MirrorAnim(bpy.types.Operator):
                 bone1.keyframe_insert(data_path="rotation_quaternion", frame=kf)
                 bone1.keyframe_insert(data_path="rotation_euler", frame=kf)
             
-            # for kf in combined_keyframes:
-            #     context.scene.frame_set(kf)
-                
-            #     # ensure both have keyframes to avoid weird interpolations
-            #     bone1.keyframe_insert(data_path="location", frame=kf)
-            #     bone2.keyframe_insert(data_path="location", frame=kf)
-            #     bone1.keyframe_insert(data_path="rotation_quaternion", frame=kf)
-            #     bone2.keyframe_insert(data_path="rotation_quaternion", frame=kf)
-                    
-            #     for pos in 'xyz':
-            #         exec(f"bone1.location.{pos}, bone2.location.{pos} = bone2.location.{pos}, bone1.location.{pos}")
-                
-            #     assert bone1.rotation_mode == "QUATERNION" and bone1.rotation_mode == bone2.rotation_mode, f"XV2 rotations must be in Quaternion. Got: {bone1.rotation_mode}"
-            #     for compo in 'wxyz':
-            #         exec(f"bone1.rotation_quaternion.{compo}, bone2.rotation_quaternion.{compo} = bone2.rotation_quaternion.{compo}, bone1.rotation_quaternion.{compo}")
-                
-            #     bone1.keyframe_insert(data_path="location", frame=kf)
-            #     bone2.keyframe_insert(data_path="location", frame=kf)
-            #     bone1.keyframe_insert(data_path="rotation_quaternion", frame=kf)
-            #     bone2.keyframe_insert(data_path="rotation_quaternion", frame=kf)
         
         # invert location and rotation
         for bone_name in bone2keyframes:
