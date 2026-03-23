@@ -1,5 +1,5 @@
 import bpy
-from ..utils import invert_frame, copy_to_other, insert_frame, delete_frame
+from ..utils import Utilities
 
 class MirrorAnim(bpy.types.Operator):
     """Mirror the selected XV2 animation"""
@@ -17,6 +17,7 @@ class MirrorAnim(bpy.types.Operator):
             self.report({"ERROR"}, "Please select an animation.")
             return {"FINISHED"}
         
+        Utilities.mirror_options = context.scene.xv2_mirror_addon_props
         old_mode = bpy.context.object.mode
         old_frame = context.scene.frame_current
         bpy.ops.object.mode_set(mode="POSE")
@@ -56,8 +57,8 @@ class MirrorAnim(bpy.types.Operator):
             
             for bone in other_bones:
                 if frame in bone2keyframes.get(bone.name, []):
-                    invert_frame(bone, frame)
-                    insert_frame(bone, frame)
+                    Utilities.invert_frame(bone)
+                    Utilities.insert_frame(bone, frame)
             
             for pair in LR_pairs:
                 boneA, boneB = LR_pairs[pair]
@@ -65,18 +66,18 @@ class MirrorAnim(bpy.types.Operator):
                 boneA_loc, boneA_rot, boneA_scale = boneA.location.copy(), boneA.rotation_quaternion.copy(), boneA.scale.copy()
                 boneB_loc, boneB_rot, boneB_scale = boneB.location.copy(), boneB.rotation_quaternion.copy(), boneB.scale.copy()
                 
-                delete_frame(boneA, frame)
-                delete_frame(boneB, frame)
+                Utilities.delete_frame(boneA, frame)
+                Utilities.delete_frame(boneB, frame)
                 
                 if frame in bone2keyframes.get(boneA.name, []):
-                    copy_to_other(boneB, boneA_loc, boneA_rot, boneA_scale)
-                    invert_frame(boneB, frame)
-                    insert_frame(boneB, frame)
+                    Utilities.copy_to_other(boneB, boneA_loc, boneA_rot, boneA_scale)
+                    Utilities.invert_frame(boneB)
+                    Utilities.insert_frame(boneB, frame)
                 
                 if frame in bone2keyframes.get(boneB.name, []):
-                    copy_to_other(boneA, boneB_loc, boneB_rot, boneB_scale)
-                    invert_frame(boneA, frame)
-                    insert_frame(boneA, frame)
+                    Utilities.copy_to_other(boneA, boneB_loc, boneB_rot, boneB_scale)
+                    Utilities.invert_frame(boneA)
+                    Utilities.insert_frame(boneA, frame)
             
         
         context.scene.frame_set(old_frame)
