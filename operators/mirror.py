@@ -23,8 +23,12 @@ class MirrorAnim(bpy.types.Operator):
         bpy.ops.object.mode_set(mode="POSE")
         
         action = armature.animation_data.action
-        slot = action.slots[0]
-        fcurves = action.layers[0].strips[0].channelbag(slot).fcurves
+        fcurves = None
+        if hasattr(action, "slots"):
+            slot = action.slots[0]
+            fcurves = action.layers[0].strips[0].channelbag(slot).fcurves
+        else:
+            fcurves = action.fcurves
         
         bone_path_prefix = """pose.bones[\""""
         bone2keyframes = {}
