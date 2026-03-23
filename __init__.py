@@ -16,7 +16,7 @@ bl_info = {
     "author": "hai",
     "description": "Add-on to mirror XV2 animations",
     "blender": (2, 80, 0),
-    "version": (1, 1, 2),
+    "version": (1, 2, 0),
     "location": """3D View > Sidebar > Mirror XV2""",
     "warning": "",
     "category": "Animation",
