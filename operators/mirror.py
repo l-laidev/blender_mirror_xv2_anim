@@ -1,9 +1,9 @@
 import bpy
 
 class MirrorAnim(bpy.types.Operator):
-    """Mirror the selected animation."""
-    bl_idname = "object.move_x"
-    bl_label = "Mirror the selected animation."
+    """Mirror the selected XV2 animation"""
+    bl_idname = "animation.mirror_xv2"
+    bl_label = "Mirror XV2 Animation"
     bl_options = {"REGISTER", "UNDO"}
     
     def execute(self, context):
@@ -49,10 +49,11 @@ class MirrorAnim(bpy.types.Operator):
             seen |= {bone_name, other_pair_name}
             bone1, bone2 = armature.pose.bones[bone_name], armature.pose.bones[other_pair_name]
             
-            combined_keyframes = set(list(bone2keyframes.get(bone_name, [])) + list(bone2keyframes.get(other_pair_name, [])))
+            bone1_frames = bone2keyframes.get(bone_name, [])
+            bone2_frames = bone2keyframes.get(other_pair_name, [])
             
             bone1_kf2locrot = {}
-            for kf in bone2keyframes.get(bone_name, []):
+            for kf in bone1_frames:
                 context.scene.frame_set(kf)
                 assert bone1.rotation_mode == "QUATERNION", f"XV2 rotations must be in Quaternion. Got: {bone1.rotation_mode}"
                 
@@ -62,7 +63,7 @@ class MirrorAnim(bpy.types.Operator):
                 bone1.keyframe_delete(data_path="rotation_euler", frame=kf)
             
             bone2_kf2locrot = {}
-            for kf in bone2keyframes.get(other_pair_name, []):
+            for kf in bone2_frames:
                 context.scene.frame_set(kf)
                 assert bone2.rotation_mode == "QUATERNION", f"XV2 rotations must be in Quaternion. Got: {bone2.rotation_mode}"
                 
