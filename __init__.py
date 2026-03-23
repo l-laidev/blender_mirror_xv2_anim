@@ -14,17 +14,17 @@
 bl_info = {
     "name": "Xv2 Mirror Anim",
     "author": "hai",
-    "description": "Add-on to mirror XV2 animations.",
+    "description": "Add-on to mirror XV2 animations",
     "blender": (2, 80, 0),
-    "version": (0, 0, 1),
-    "location": "",
+    "version": (1, 0, 0),
+    "location": """3D View > Sidebar > Mirror XV2""",
     "warning": "",
     "category": "Generic",
 }
 
 
 import bpy
-from .operators import MirrorAnim
+from .operators import MirrorAnim, AddonPanel
 
 
 def menu_func(self, context):
@@ -32,11 +32,12 @@ def menu_func(self, context):
 
 def register():
     bpy.utils.register_class(MirrorAnim)
-    bpy.types.VIEW3D_MT_object.append(menu_func)
-
+    bpy.utils.register_class(AddonPanel)
 
 def unregister():
     bpy.utils.unregister_class(MirrorAnim)
+    bpy.utils.unregister_class(AddonPanel)
+
 
 if __name__ == "__main__":
     register()
