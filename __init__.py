@@ -16,10 +16,10 @@ bl_info = {
     "author": "hai",
     "description": "Add-on to mirror XV2 animations",
     "blender": (2, 80, 0),
-    "version": (1, 0, 0),
+    "version": (1, 1, 0),
     "location": """3D View > Sidebar > Mirror XV2""",
     "warning": "",
-    "category": "Generic",
+    "category": "Animation",
 }
 
 
@@ -33,7 +33,7 @@ def menu_func(self, context):
 def register():
     bpy.utils.register_class(MirrorAnim)
     bpy.utils.register_class(AddonPanel)
-    bpy.types.Scene.xv2_mirror_addon_props = settings#bpy.props.PointerProperty(type=settings)
+    bpy.types.Scene.xv2_mirror_addon_props = settings
 
 def unregister():
     bpy.utils.unregister_class(MirrorAnim)
