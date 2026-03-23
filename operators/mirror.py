@@ -44,12 +44,18 @@ class MirrorAnim(bpy.types.Operator):
         for frames in bone2keyframes.values():
             all_frames |= set(frames)
         
+        if "Optimize" not in Utilities.mirror_options:
+            # do not leave out any frames
+            all_frames = set(range(min(all_frames), max(all_frames)+1))
+            for bone_name in bone2keyframes:
+                bone2keyframes[bone_name] = list(all_frames)
+        
         LR_pairs = {}
         other_bones = set()
         for bone in armature.pose.bones:
             bone_name_parts = bone.name.split('_')
             
-            if bone_name_parts[1] not in ['L', 'R']:
+            if len(bone_name_parts) < 2 or bone_name_parts[1] not in ['L', 'R']:
                 other_bones.add(bone)
                 continue
             
