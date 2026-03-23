@@ -11,4 +11,7 @@ class AddonPanel(bpy.types.Panel):
     
     def draw(self, context):
         self.layout.operator(MirrorAnim.bl_idname)
-        self.layout.prop(context.scene, "xv2_mirror_addon_props")
+        
+        self.layout.prop(context.scene.xv2_mirror_addon_props, "mirroring_options")
+        self.layout.prop(context.scene.xv2_mirror_addon_props, "mirroring_mode")
+        self.layout.prop(context.scene.xv2_mirror_addon_props, "optimize_frame_selection")
