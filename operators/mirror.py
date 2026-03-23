@@ -17,7 +17,9 @@ class MirrorAnim(bpy.types.Operator):
             self.report({"ERROR"}, "Please select an animation.")
             return {"FINISHED"}
         
-        Utilities.mirror_options = context.scene.xv2_mirror_addon_props
+        Utilities.mirror_options = context.scene.xv2_mirror_addon_props.mirroring_options
+        Utilities.mirror_mode = context.scene.xv2_mirror_addon_props.mirroring_mode
+        
         old_mode = bpy.context.object.mode
         old_frame = context.scene.frame_current
         bpy.ops.object.mode_set(mode="POSE")
@@ -44,7 +46,7 @@ class MirrorAnim(bpy.types.Operator):
         for frames in bone2keyframes.values():
             all_frames |= set(frames)
         
-        if "Optimize" not in Utilities.mirror_options:
+        if not context.scene.xv2_mirror_addon_props.optimize_frame_selection:
             # do not leave out any frames
             all_frames = set(range(min(all_frames), max(all_frames)+1))
             for bone_name in bone2keyframes:
@@ -53,13 +55,24 @@ class MirrorAnim(bpy.types.Operator):
         LR_pairs = {}
         other_bones = set()
         for bone in armature.pose.bones:
+            if Utilities.mirror_mode == "SZ" and 'socket_' in bone.name.lower():
+                continue
+            
             bone_name_parts = bone.name.split('_')
             
-            if len(bone_name_parts) < 2 or bone_name_parts[1] not in ['L', 'R']:
+            if (
+                len(bone_name_parts) < 2 or
+                bone_name_parts[1].upper() not in ['L', 'R']  # XV2's L/R naming scheme
+                and bone_name_parts[-1].upper() not in ['L', 'R']  # SparkingZERO's L/R naming scheme
+                ):
                 other_bones.add(bone)
                 continue
             
-            name_without_LR = '_'.join(bone_name_parts[:1] + bone_name_parts[2:])
+            if bone_name_parts[1].upper() in ['L', 'R']:
+                name_without_LR = '_'.join(bone_name_parts[:1] + bone_name_parts[2:])
+            else:
+                name_without_LR = '_'.join(bone_name_parts[:-1])
+            
             LR_pairs[name_without_LR] = LR_pairs.get(name_without_LR, []) + [bone]
         
         for frame in all_frames:
@@ -81,12 +94,14 @@ class MirrorAnim(bpy.types.Operator):
                 
                 if frame in bone2keyframes.get(boneA.name, []):
                     Utilities.copy_to_other(boneB, boneA_loc, boneA_rot, boneA_scale)
-                    Utilities.invert_frame(boneB)
+                    if Utilities.mirror_mode == "XV2":
+                        Utilities.invert_frame(boneB)
                     Utilities.insert_frame(boneB, frame)
                 
                 if frame in bone2keyframes.get(boneB.name, []):
                     Utilities.copy_to_other(boneA, boneB_loc, boneB_rot, boneB_scale)
-                    Utilities.invert_frame(boneA)
+                    if Utilities.mirror_mode == "XV2":
+                        Utilities.invert_frame(boneA)
                     Utilities.insert_frame(boneA, frame)
             
         
