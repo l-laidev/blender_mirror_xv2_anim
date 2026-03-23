@@ -1,0 +1,17 @@
+schema_version = "1.0.0"
+
+id = "xv2_mirror_anim"
+version = "1.0.0"
+name = "Xv2 Mirror Anim"
+tagline = "Add-on to mirror XV2 animations."
+maintainer = "hai"
+type = "add-on"
+
+tags = ["Animation"]
+
+blender_version_min = "4.2.0"
+
+license = [
+  "SPDX:GPL-3.0-or-later",
+]
+platforms = ["windows-x64", "macos-arm64", "linux-x64"]
