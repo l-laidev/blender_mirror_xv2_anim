@@ -1,5 +1,5 @@
 import bpy
-from . import MirrorAnim
+from .mirror import MirrorAnim
 
 
 class AddonPanel(bpy.types.Panel):
@@ -11,3 +11,4 @@ class AddonPanel(bpy.types.Panel):
     
     def draw(self, context):
         self.layout.operator(MirrorAnim.bl_idname)
+        self.layout.prop(context.scene, "xv2_mirror_addon_props")

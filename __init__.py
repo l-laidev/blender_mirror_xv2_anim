@@ -24,7 +24,7 @@ bl_info = {
 
 
 import bpy
-from .operators import MirrorAnim, AddonPanel
+from .operators import MirrorAnim, AddonPanel, settings
 
 
 def menu_func(self, context):
@@ -33,10 +33,12 @@ def menu_func(self, context):
 def register():
     bpy.utils.register_class(MirrorAnim)
     bpy.utils.register_class(AddonPanel)
+    bpy.types.Scene.xv2_mirror_addon_props = settings#bpy.props.PointerProperty(type=settings)
 
 def unregister():
     bpy.utils.unregister_class(MirrorAnim)
     bpy.utils.unregister_class(AddonPanel)
+    del bpy.types.Scene.xv2_mirror_addon_props
 
 
 if __name__ == "__main__":
